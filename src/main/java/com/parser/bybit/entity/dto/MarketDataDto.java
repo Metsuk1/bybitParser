@@ -8,8 +8,8 @@ import java.time.Instant;
 @Builder
 public record MarketDataDto(
         String symbol,      // BTCUSDT, XAUUSD
-        BigDecimal price,
-        BigDecimal volume,
+        String price,
+        String volume,
         String source,      // BYBIT
         String assetType,   // CRYPTO, COMMODITY
         Instant timestamp

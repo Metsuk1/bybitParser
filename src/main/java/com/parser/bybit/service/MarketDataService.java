@@ -27,6 +27,7 @@ public class MarketDataService {
     public void process(OpenInterestDto dto) {
         if(dto.symbol() == null) {
             log.warn("Skipped symbol: {}", dto);
+            return;
         }
         log.info("New Open Interest for {}: {}", dto.symbol(), dto.openInterest());
 
@@ -36,6 +37,7 @@ public class MarketDataService {
     public void process(OrderBookDto dto){
         if(dto.symbol() == null) {
             log.warn("Skipped symbol: {}", dto);
+            return;
         }
         log.debug("Routing OrderBook for {}", dto.symbol());
 

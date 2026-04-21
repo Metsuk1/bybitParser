@@ -34,7 +34,7 @@ public class BybitWebSocketClient {
                 "tickers.BTCUSDT",
                 "orderbook.50.BTCUSDT"
         );
-        client.getPublicChannelStream(args, "v5.public.linear");
+        client.getPublicChannelStream(args, "/v5/public/linear");
 
         log.info("Subscribed to topics: {}", args);
     }

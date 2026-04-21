@@ -17,7 +17,7 @@ public record OrderBookDto(
 ) {
     @Builder
     public record PriceLevel(
-            BigDecimal price,
-            BigDecimal size
+            String price,
+            String size
     ) {}
 }

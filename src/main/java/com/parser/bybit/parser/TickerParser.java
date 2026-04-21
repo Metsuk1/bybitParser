@@ -22,7 +22,8 @@ public class TickerParser implements IMarketDataParser{
 
         var dto = MarketDataDto.builder()
                 .symbol(data.get("symbol").asText())
-                .price(data.get("lastPrice").decimalValue())
+                .price(data.get("lastPrice").asText())
+                .volume(data.get("volume24h").asText())
                 .source("BYBIT")
                 .assetType("CRYPTO")
                 .timestamp(Instant.now())

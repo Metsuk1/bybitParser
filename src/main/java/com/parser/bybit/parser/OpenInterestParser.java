@@ -16,14 +16,16 @@ public class OpenInterestParser implements IMarketDataParser {
 
     @Override
     public void parse(JsonNode node) {
-        JsonNode data = node.has("result") ? node.get("result").get("list").get(0) : node.get("data");
+        JsonNode result = node.path("result");
+        JsonNode item = result.path("list").path(0);
 
         var dto = OpenInterestDto.builder()
-                .symbol(data.get("symbol").asText())
-                .openInterest(data.get("openInterest").decimalValue())
+                .symbol(result.path("symbol").asText())
+                .openInterest(item.path("openInterest").decimalValue())
                 .source("BYBIT")
                 .timestamp(Instant.now())
                 .build();
+
 
         marketDataService.process(dto);
     }

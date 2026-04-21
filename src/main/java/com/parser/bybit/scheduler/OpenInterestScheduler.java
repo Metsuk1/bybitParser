@@ -18,12 +18,6 @@ public class OpenInterestScheduler {
     private final ObjectMapper mapper;
     private final WebClient webClient;
 
-    @Bean
-    public WebClient webClient() {
-        return WebClient.builder()
-                .baseUrl("https://api.bybit.com")
-                .build();
-    }
 
     @Scheduled(fixedRate = 300000)
     public void fetchBybitOpenInterest() {

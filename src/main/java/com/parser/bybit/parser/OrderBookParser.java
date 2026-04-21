@@ -37,8 +37,8 @@ public class OrderBookParser implements IMarketDataParser{
         if (levelsNode != null && levelsNode.isArray()) {
             for (JsonNode level : levelsNode) {
                 levels.add(new OrderBookDto.PriceLevel(
-                        level.get(0).decimalValue(), // Bid price
-                        level.get(1).decimalValue()  // Bid size
+                        level.get(0).asText(), // Bid price
+                        level.get(1).asText()  // Bid size
                 ));
             }
         }
