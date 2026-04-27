@@ -1,0 +1,249 @@
+asyncapi: 2.6.0
+info:
+  title: Bybit Market Data Events
+  version: 1.0.0
+  description: |
+    AsyncAPI contract for the Bybit market data publisher.
+    The service produces normalized market data events to Kafka.
+
+defaultContentType: application/json
+
+servers:
+  local:
+    url: localhost:9092
+    protocol: kafka
+    description: Local Kafka broker exposed by docker-compose
+  docker:
+    url: kafka:9092
+    protocol: kafka
+    description: Internal Kafka broker hostname used by the application container
+
+channels:
+  market.tickers:
+    description: Real-time ticker updates produced from Bybit WebSocket messages
+    publish:
+      operationId: publishTicker
+      summary: Publishes normalized ticker events
+      message:
+        $ref: '#/components/messages/MarketTickerMessage'
+    bindings:
+      kafka:
+        topic: market.tickers
+        partitions: 1
+        replicas: 1
+
+  market.order-book:
+    description: Order book snapshots or incremental updates normalized from Bybit WebSocket messages
+    publish:
+      operationId: publishOrderBook
+      summary: Publishes normalized order book events
+      message:
+        $ref: '#/components/messages/OrderBookMessage'
+    bindings:
+      kafka:
+        topic: market.order-book
+        partitions: 1
+        replicas: 1
+
+  market.open-interest:
+    description: Open interest snapshots fetched from the Bybit REST API on a schedule
+    publish:
+      operationId: publishOpenInterest
+      summary: Publishes normalized open interest events
+      message:
+        $ref: '#/components/messages/OpenInterestMessage'
+    bindings:
+      kafka:
+        topic: market.open-interest
+        partitions: 1
+        replicas: 1
+
+components:
+  messages:
+    MarketTickerMessage:
+      name: MarketTickerMessage
+      title: Market ticker event
+      summary: Last traded price and 24h volume for a symbol
+      contentType: application/json
+      headers:
+        type: object
+        properties: {}
+      payload:
+        $ref: '#/components/schemas/MarketDataDto'
+      examples:
+        - name: btcusdtTicker
+          summary: Example ticker event
+          payload:
+            symbol: BTCUSDT
+            price: "68452.10"
+            volume: "12345.678"
+            source: BYBIT
+            assetType: CRYPTO
+            timestamp: "2026-04-23T08:30:15Z"
+      bindings:
+        kafka:
+          key:
+            type: string
+            description: Kafka message key. Uses the trading symbol, for example BTCUSDT.
+
+    OrderBookMessage:
+      name: OrderBookMessage
+      title: Order book event
+      summary: Normalized order book data for a symbol
+      contentType: application/json
+      headers:
+        type: object
+        properties: {}
+      payload:
+        $ref: '#/components/schemas/OrderBookDto'
+      examples:
+        - name: btcusdtOrderBook
+          summary: Example order book event
+          payload:
+            symbol: BTCUSDT
+            bids:
+              - price: "68451.90"
+                size: "2.150"
+              - price: "68451.80"
+                size: "1.000"
+            asks:
+              - price: "68452.00"
+                size: "0.850"
+              - price: "68452.10"
+                size: "3.400"
+            source: BYBIT
+            seq: 1713850215123
+            timestamp: "2026-04-23T08:30:15Z"
+      bindings:
+        kafka:
+          key:
+            type: string
+            description: Kafka message key. Uses the trading symbol, for example BTCUSDT.
+
+    OpenInterestMessage:
+      name: OpenInterestMessage
+      title: Open interest event
+      summary: Scheduled open interest snapshot for a symbol
+      contentType: application/json
+      headers:
+        type: object
+        properties: {}
+      payload:
+        $ref: '#/components/schemas/OpenInterestDto'
+      examples:
+        - name: btcusdtOpenInterest
+          summary: Example open interest event
+          payload:
+            symbol: BTCUSDT
+            openInterest: 24567.1234
+            source: BYBIT
+            timestamp: "2026-04-23T08:30:15Z"
+      bindings:
+        kafka:
+          key:
+            type: string
+            description: Kafka message key. Uses the trading symbol, for example BTCUSDT.
+
+  schemas:
+    MarketDataDto:
+      type: object
+      required:
+        - symbol
+        - price
+        - volume
+        - source
+        - assetType
+        - timestamp
+      properties:
+        symbol:
+          type: string
+          description: Trading symbol
+          example: BTCUSDT
+        price:
+          type: string
+          description: Last traded price as received from the source and preserved as a string
+          example: "68452.10"
+        volume:
+          type: string
+          description: 24-hour traded volume as received from the source and preserved as a string
+          example: "12345.678"
+        source:
+          type: string
+          example: BYBIT
+        assetType:
+          type: string
+          example: CRYPTO
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-04-23T08:30:15Z"
+
+    OrderBookDto:
+      type: object
+      required:
+        - symbol
+        - bids
+        - asks
+        - source
+        - seq
+        - timestamp
+      properties:
+        symbol:
+          type: string
+          example: BTCUSDT
+        bids:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        asks:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+        source:
+          type: string
+          example: BYBIT
+        seq:
+          type: integer
+          format: int64
+          description: Serial number or sequence value associated with the update
+          example: 1713850215123
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-04-23T08:30:15Z"
+
+    PriceLevel:
+      type: object
+      required:
+        - price
+        - size
+      properties:
+        price:
+          type: string
+          example: "68452.00"
+        size:
+          type: string
+          example: "1.250"
+
+    OpenInterestDto:
+      type: object
+      required:
+        - symbol
+        - openInterest
+        - source
+        - timestamp
+      properties:
+        symbol:
+          type: string
+          example: BTCUSDT
+        openInterest:
+          type: number
+          description: Open interest value parsed into BigDecimal
+          example: 24567.1234
+        source:
+          type: string
+          example: BYBIT
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-04-23T08:30:15Z"
